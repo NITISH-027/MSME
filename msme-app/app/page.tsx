@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import CreditCycleAlerts from "@/components/CreditCycleAlerts";
 import ComplianceTracker from "@/components/ComplianceTracker";
+import SchemeMatchmaker from "@/components/SchemeMatchmaker";
 
 function StatusBadge({ status }: { status: Order["status"] }) {
   const map: Record<string, { variant: "default" | "success" | "warning" | "secondary" | "destructive"; label: string }> = {
@@ -195,6 +196,8 @@ export default async function DashboardPage() {
       <CreditCycleAlerts />
 
       <ComplianceTracker />
+
+      <SchemeMatchmaker />
 
       <Card>
         <CardHeader>
