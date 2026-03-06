@@ -72,6 +72,17 @@ INSERT INTO orders (client, product, quantity, status, delivery_date) VALUES
   ('BigBasket Gifts','Stuffed Penguin Gift Set',     150,  'In Production',   '2026-03-20');
 
 -- ============================================================
+-- TABLE: ml_predictions
+-- Machine-learning forecast results stored as JSON payloads
+-- ============================================================
+CREATE TABLE IF NOT EXISTS ml_predictions (
+  id              SERIAL PRIMARY KEY,
+  model_name      TEXT NOT NULL,
+  prediction_data JSONB,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
 -- TABLE: trends
 -- Market & social media trend tracking for R&D and innovation
 -- ============================================================
