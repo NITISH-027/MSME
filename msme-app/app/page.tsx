@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inventory, machines, orders, trends } from "@/lib/data";
-import type { Order } from "@/lib/data";
+import { inventory as mockInventory, machines as mockMachines, orders as mockOrders, trends as mockTrends } from "@/lib/data";
+import type { Order, InventoryItem, Machine, Trend } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 import {
   Package,
   Factory,
@@ -22,11 +23,38 @@ function StatusBadge({ status }: { status: Order["status"] }) {
   return <Badge variant={variant}>{label}</Badge>;
 }
 
-export default function DashboardPage() {
+async function fetchDashboardData() {
+  if (!supabase) {
+    return {
+      orders: mockOrders,
+      inventory: mockInventory,
+      machines: mockMachines,
+      trends: mockTrends,
+    };
+  }
+
+  const [ordersRes, inventoryRes, machinesRes, trendsRes] = await Promise.all([
+    supabase.from("orders").select("*").order("id", { ascending: true }),
+    supabase.from("inventory").select("*").order("id", { ascending: true }),
+    supabase.from("machines").select("*").order("id", { ascending: true }),
+    supabase.from("trends").select("*").order("search_spike_percent", { ascending: false }),
+  ]);
+
+  return {
+    orders: (ordersRes.data as Order[] | null) ?? mockOrders,
+    inventory: (inventoryRes.data as InventoryItem[] | null) ?? mockInventory,
+    machines: (machinesRes.data as Machine[] | null) ?? mockMachines,
+    trends: (trendsRes.data as Trend[] | null) ?? mockTrends,
+  };
+}
+
+export default async function DashboardPage() {
+  const { orders, inventory, machines, trends } = await fetchDashboardData();
+
   const lowStockItems = inventory.filter((i) => i.current_stock < i.min_required);
   const activeOrders = orders.filter((o) => o.status !== "Delivered");
   const runningMachines = machines.filter((m) => m.status === "Running");
-  const topTrend = trends[0];
+  const topTrend = trends.length > 0 ? trends[0] : null;
 
   const stats = [
     {
@@ -55,11 +83,11 @@ export default function DashboardPage() {
     },
     {
       label: "Top Trend Spike",
-      value: `+${topTrend.search_spike_percent}%`,
+      value: topTrend ? `+${topTrend.search_spike_percent}%` : "—",
       icon: TrendingUp,
       color: "text-purple-600",
       bg: "bg-purple-50",
-      description: topTrend.keyword,
+      description: topTrend?.keyword ?? "",
     },
   ];
 

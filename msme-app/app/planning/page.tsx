@@ -29,18 +29,16 @@ const DAY_START = 7;
 const DAY_HOURS = 11; // 7:00 to 18:00
 
 async function fetchOrders(): Promise<Order[]> {
-  try {
-    if (!supabase) return mockOrders;
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("delivery_date", { ascending: true });
-    if (error || !data) return mockOrders;
-    return data as Order[];
-  } catch (err) {
-    console.error("Failed to fetch orders from Supabase:", err);
+  if (!supabase) return mockOrders;
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("delivery_date", { ascending: true });
+  if (error) {
+    console.error("Failed to fetch orders from Supabase:", error.message);
     return mockOrders;
   }
+  return (data as Order[] | null) ?? mockOrders;
 }
 
 export default async function PlanningPage() {

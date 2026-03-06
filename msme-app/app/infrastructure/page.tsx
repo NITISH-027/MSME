@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { machines } from "@/lib/data";
+import { machines as mockMachines } from "@/lib/data";
+import type { Machine } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 import {
   Factory,
   AlertTriangle,
@@ -24,7 +25,22 @@ function efficiencyColor(pct: number) {
   return "bg-red-500";
 }
 
-export default function InfrastructurePage() {
+async function fetchMachines(): Promise<Machine[]> {
+  if (!supabase) return mockMachines;
+  const { data, error } = await supabase
+    .from("machines")
+    .select("*")
+    .order("id", { ascending: true });
+  if (error) {
+    console.error("Failed to fetch machines from Supabase:", error.message);
+    return mockMachines;
+  }
+  return (data as Machine[] | null) ?? mockMachines;
+}
+
+export default async function InfrastructurePage() {
+  const machines = await fetchMachines();
+
   const running = machines.filter((m) => m.status === "Running");
   const idle = machines.filter((m) => m.status === "Idle");
   const maintenance = machines.filter((m) => m.status === "Under Maintenance");
