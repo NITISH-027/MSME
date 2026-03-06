@@ -10,6 +10,7 @@ import {
   Lightbulb,
   TrendingUp,
   UserCircle,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/analytics",      label: "Performance Analytics", icon: BarChart3 },
   { href: "/infrastructure", label: "Infrastructure",    icon: Factory },
   { href: "/innovation",     label: "Innovation Tracking", icon: Lightbulb },
+  { href: "/advisor",        label: "AI Advisor",        icon: Bot },
   { href: "/profile",        label: "My Profile",        icon: UserCircle },
 ];
 
