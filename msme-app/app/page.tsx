@@ -16,6 +16,7 @@ import {
 import CreditCycleAlerts from "@/components/CreditCycleAlerts";
 import ComplianceTracker from "@/components/ComplianceTracker";
 import SchemeMatchmaker from "@/components/SchemeMatchmaker";
+import WorkforceRoster from "@/components/WorkforceRoster";
 
 function StatusBadge({ status }: { status: Order["status"] }) {
   const map: Record<string, { variant: "default" | "success" | "warning" | "secondary" | "destructive"; label: string }> = {
@@ -198,6 +199,8 @@ export default async function DashboardPage() {
       <ComplianceTracker />
 
       <SchemeMatchmaker />
+
+      <WorkforceRoster />
 
       <Card>
         <CardHeader>
