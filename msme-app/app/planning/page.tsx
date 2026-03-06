@@ -2,10 +2,12 @@ export const dynamic = 'force-dynamic';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inventory, orders as mockOrders, scheduleJobs } from "@/lib/data";
-import type { Order } from "@/lib/data";
+import { inventory as mockInventory, orders as mockOrders, scheduleJobs } from "@/lib/data";
+import type { Order, InventoryItem } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import CreateOrderModal from "@/components/CreateOrderModal";
+import { OrderActions } from "@/components/OrderActions";
+import { InventoryActions } from "@/components/InventoryActions";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -43,8 +45,22 @@ async function fetchOrders(): Promise<Order[]> {
   return (data as Order[] | null) ?? mockOrders;
 }
 
+async function fetchInventory(): Promise<InventoryItem[]> {
+  if (!supabase) return mockInventory;
+  const { data, error } = await supabase
+    .from("inventory")
+    .select("*")
+    .order("id", { ascending: true });
+  if (error) {
+    console.error("Failed to fetch inventory from Supabase:", error.message);
+    return mockInventory;
+  }
+  return (data as InventoryItem[] | null) ?? mockInventory;
+}
+
 export default async function PlanningPage() {
   const orders = await fetchOrders();
+  const inventory = await fetchInventory();
   const lowStockItems = inventory.filter((i) => i.current_stock < i.min_required);
   const activeOrders = orders.filter((o) => o.status !== "Delivered");
 
@@ -122,6 +138,7 @@ export default async function PlanningPage() {
                   <th className="px-4 py-3 text-right font-semibold text-gray-600">Min Required</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Unit</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -154,6 +171,9 @@ export default async function PlanningPage() {
                             {isLow ? "Low Stock" : "OK"}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <InventoryActions item={item} />
                       </td>
                     </tr>
                   );
@@ -192,6 +212,7 @@ export default async function PlanningPage() {
                   <th className="px-4 py-3 text-right font-semibold text-gray-600">Qty</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Delivery</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -204,6 +225,9 @@ export default async function PlanningPage() {
                     <td className="px-4 py-3 text-gray-500">{order.delivery_date}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={order.status} />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <OrderActions order={order} />
                     </td>
                   </tr>
                 ))}

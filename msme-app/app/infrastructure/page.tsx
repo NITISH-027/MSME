@@ -5,6 +5,7 @@ import { machines as mockMachines } from "@/lib/data";
 import type { Machine } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { MachineStatusSelect } from "@/components/MachineStatusSelect";
+import { MachineActions } from "@/components/MachineActions";
 import {
   Factory,
   AlertTriangle,
@@ -172,6 +173,7 @@ export default async function InfrastructurePage() {
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">Efficiency</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">Max Capacity</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">Effective Output</th>
+                <th className="px-4 py-3 text-center font-semibold text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -197,6 +199,9 @@ export default async function InfrastructurePage() {
                     <td className="px-4 py-3 text-right font-semibold text-gray-800">
                       {m.status === "Running" ? `${effective} u/day` : "0 u/day"}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <MachineActions machine={m} />
+                    </td>
                   </tr>
                 );
               })}
@@ -213,6 +218,7 @@ export default async function InfrastructurePage() {
                     .reduce((s, m) => s + Math.round((m.efficiency_percent / 100) * m.max_capacity), 0)}{" "}
                   u/day
                 </td>
+                <td className="px-4 py-3" />
               </tr>
             </tbody>
           </table>
