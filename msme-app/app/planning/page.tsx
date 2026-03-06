@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { inventory, orders, scheduleJobs } from "@/lib/data";
+import { inventory, orders as mockOrders, scheduleJobs } from "@/lib/data";
 import type { Order } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
+import CreateOrderModal from "@/components/CreateOrderModal";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -26,7 +28,23 @@ function StatusBadge({ status }: { status: Order["status"] }) {
 const DAY_START = 7;
 const DAY_HOURS = 11; // 7:00 to 18:00
 
-export default function PlanningPage() {
+async function fetchOrders(): Promise<Order[]> {
+  try {
+    if (!supabase) return mockOrders;
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("delivery_date", { ascending: true });
+    if (error || !data) return mockOrders;
+    return data as Order[];
+  } catch (err) {
+    console.error("Failed to fetch orders from Supabase:", err);
+    return mockOrders;
+  }
+}
+
+export default async function PlanningPage() {
+  const orders = await fetchOrders();
   const lowStockItems = inventory.filter((i) => i.current_stock < i.min_required);
   const activeOrders = orders.filter((o) => o.status !== "Delivered");
 
@@ -35,11 +53,14 @@ export default function PlanningPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Production Planning</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Demand forecasting, material requirements, and machine scheduling.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Production Planning</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Demand forecasting, material requirements, and machine scheduling.
+          </p>
+        </div>
+        <CreateOrderModal />
       </div>
 
       {/* 1. Demand Forecasting Alert */}
@@ -197,7 +218,7 @@ export default function PlanningPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Cpu className="h-5 w-5 text-indigo-600" />
-            Today's Production Schedule
+            Today&apos;s Production Schedule
           </CardTitle>
           <CardDescription>
             Gantt chart — 07:00 to 18:00. Each block represents a job assigned to a machine.
