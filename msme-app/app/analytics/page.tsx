@@ -6,6 +6,7 @@ import type { Machine, Order } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { TrendingUp, IndianRupee, Zap } from "lucide-react";
 import { AnalyticsCharts } from "./AnalyticsCharts";
+import ExportReportButton from "@/components/ExportReportButton";
 
 async function fetchMachines(): Promise<Machine[]> {
   if (!supabase) return mockMachines;
@@ -62,10 +63,15 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Performance Analytics</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Sales performance, system efficiency, OEE and defect rates.
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Performance Analytics</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Sales performance, system efficiency, OEE and defect rates.
+            </p>
+          </div>
+          <ExportReportButton />
+        </div>
       </div>
 
       {/* KPI Summary */}
