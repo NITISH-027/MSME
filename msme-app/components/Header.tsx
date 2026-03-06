@@ -1,13 +1,46 @@
 "use client";
 
 import { Bell, User, ChevronDown, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function Header() {
   const router = useRouter();
   const [showNotif, setShowNotif] = useState(false);
+  const [displayName, setDisplayName] = useState("User");
+  const [role, setRole] = useState("Admin");
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const updateUserInfo = (metadata: Record<string, unknown> | null, email?: string | null) => {
+      const name = typeof metadata?.full_name === "string" ? metadata.full_name : null;
+      const company = typeof metadata?.company_name === "string" ? metadata.company_name : null;
+      setDisplayName(name || email || "User");
+      setRole(company || "Admin");
+    };
+
+    supabase.auth.getUser().then(({ data: { user }, error }) => {
+      if (error) {
+        console.error("Header: failed to fetch user", error.message);
+        return;
+      }
+      if (user) {
+        updateUserInfo(user.user_metadata as Record<string, unknown>, user.email);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
+      updateUserInfo(
+        user ? (user.user_metadata as Record<string, unknown>) : null,
+        user?.email,
+      );
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -67,8 +100,8 @@ export default function Header() {
             <User className="h-4 w-4" />
           </div>
           <div className="text-left">
-            <p className="text-xs font-semibold text-gray-800 leading-tight">Nitish Kumar</p>
-            <p className="text-xs text-gray-400">Owner</p>
+            <p className="text-xs font-semibold text-gray-800 leading-tight">{displayName}</p>
+            <p className="text-xs text-gray-400">{role}</p>
           </div>
           <ChevronDown className="h-3 w-3 text-gray-400 ml-1" />
         </button>
