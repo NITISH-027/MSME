@@ -1,30 +1,63 @@
-"use client";
+export const dynamic = "force-dynamic";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { salesData, oeeData } from "@/lib/data";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { TrendingUp, Activity, IndianRupee, Zap } from "lucide-react";
+import { salesData, oeeData, machines as mockMachines, orders as mockOrders } from "@/lib/data";
+import type { Machine, Order } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
+import { TrendingUp, IndianRupee, Zap } from "lucide-react";
+import { AnalyticsCharts } from "./AnalyticsCharts";
 
-const formatRupee = (value: number) =>
-  `₹${(value / 1000).toFixed(0)}K`;
+async function fetchMachines(): Promise<Machine[]> {
+  if (!supabase) return mockMachines;
+  const { data, error } = await supabase
+    .from("machines")
+    .select("*")
+    .order("id", { ascending: true });
+  if (error) {
+    console.error("Failed to fetch machines from Supabase, falling back to mock data:", error.message);
+    return mockMachines;
+  }
+  return (data as Machine[] | null) ?? mockMachines;
+}
 
-export default function AnalyticsPage() {
+async function fetchOrders(): Promise<Order[]> {
+  if (!supabase) return mockOrders;
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("id", { ascending: true });
+  if (error) {
+    console.error("Failed to fetch orders from Supabase, falling back to mock data:", error.message);
+    return mockOrders;
+  }
+  return (data as Order[] | null) ?? mockOrders;
+}
+
+export default async function AnalyticsPage() {
+  const [machines, orders] = await Promise.all([fetchMachines(), fetchOrders()]);
+
+  // KPI calculations (from mock sales/oee data)
   const totalRevenue = salesData.reduce((s, d) => s + d.revenue, 0);
   const totalCosts   = salesData.reduce((s, d) => s + d.costs, 0);
   const totalProfit  = totalRevenue - totalCosts;
   const avgOEE       = Math.round(oeeData.reduce((s, d) => s + d.oee, 0) / oeeData.length);
   const avgDefect    = (oeeData.reduce((s, d) => s + d.defect_rate, 0) / oeeData.length).toFixed(1);
+
+  // Real metrics derived from Supabase data
+  const efficiencyData = machines.map((m) => ({
+    name: m.name,
+    efficiency: m.efficiency_percent,
+    status: m.status,
+  }));
+
+  const statusCounts: Record<string, number> = {};
+  for (const order of orders) {
+    statusCounts[order.status] = (statusCounts[order.status] ?? 0) + 1;
+  }
+  const orderPipelineData = Object.entries(statusCounts).map(([status, count]) => ({
+    status,
+    count,
+  }));
 
   return (
     <div className="space-y-6">
@@ -43,105 +76,15 @@ export default function AnalyticsPage() {
         <KPICard label="Avg OEE (Week)"     value={`${avgOEE}%`}                               icon={Zap}         color="text-purple-600" bg="bg-purple-50" />
       </div>
 
-      {/* Revenue vs Costs Bar Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-blue-600" />
-            Sales Performance — Revenue vs. Costs (Last 6 Months)
-          </CardTitle>
-          <CardDescription>
-            Monthly revenue and cost comparison. Profit margin is the gap between the two bars.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={salesData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tickFormatter={formatRupee} tick={{ fontSize: 12 }} />
-              <Tooltip
-                formatter={(value?: number | string, name?: string) => [`₹${Number(value ?? 0).toLocaleString()}`, name ?? ""]}
-                contentStyle={{ borderRadius: "8px", fontSize: "13px" }}
-              />
-              <Legend />
-              <Bar dataKey="revenue" name="Revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="costs"   name="Costs"   fill="#f87171" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* OEE & Defect Rate Line Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-purple-600" />
-            System Efficiency — OEE & Defect Rate (This Week)
-          </CardTitle>
-          <CardDescription>
-            Overall Equipment Effectiveness (OEE) and defect rates across the factory floor.
-            Target OEE: 85%+, Target Defect Rate: &lt;3%.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={oeeData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-              <YAxis
-                yAxisId="left"
-                domain={[60, 100]}
-                tick={{ fontSize: 12 }}
-                tickFormatter={(v) => `${v}%`}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                domain={[0, 8]}
-                tick={{ fontSize: 12 }}
-                tickFormatter={(v) => `${v}%`}
-              />
-              <Tooltip
-                formatter={(value?: number | string, name?: string) => [
-                  `${value ?? 0}%`,
-                  name ?? "",
-                ]}
-                contentStyle={{ borderRadius: "8px", fontSize: "13px" }}
-              />
-              <Legend />
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="oee"
-                name="OEE (%)"
-                stroke="#8b5cf6"
-                strokeWidth={2.5}
-                dot={{ fill: "#8b5cf6", r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="defect_rate"
-                name="Defect Rate (%)"
-                stroke="#f59e0b"
-                strokeWidth={2.5}
-                strokeDasharray="5 5"
-                dot={{ fill: "#f59e0b", r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-
-          {/* OEE benchmarks */}
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <BenchmarkCard label="World Class OEE" value="85%+" color="text-green-600" bg="bg-green-50" />
-            <BenchmarkCard label="Your Avg OEE" value={`${avgOEE}%`} color={avgOEE >= 80 ? "text-blue-600" : "text-red-600"} bg={avgOEE >= 80 ? "bg-blue-50" : "bg-red-50"} />
-            <BenchmarkCard label="Avg Defect Rate" value={`${avgDefect}%`} color={Number(avgDefect) < 3 ? "text-green-600" : "text-yellow-600"} bg={Number(avgDefect) < 3 ? "bg-green-50" : "bg-yellow-50"} />
-          </div>
-        </CardContent>
-      </Card>
+      {/* All charts (client component — Recharts requires browser APIs) */}
+      <AnalyticsCharts
+        salesData={salesData}
+        oeeData={oeeData}
+        efficiencyData={efficiencyData}
+        orderPipelineData={orderPipelineData}
+        avgOEE={avgOEE}
+        avgDefect={avgDefect}
+      />
 
       {/* Profit breakdown table */}
       <Card>
@@ -213,24 +156,5 @@ function KPICard({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function BenchmarkCard({
-  label,
-  value,
-  color,
-  bg,
-}: {
-  label: string;
-  value: string;
-  color: string;
-  bg: string;
-}) {
-  return (
-    <div className={`rounded-lg p-3 ${bg}`}>
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className={`text-xl font-bold ${color}`}>{value}</p>
-    </div>
   );
 }
