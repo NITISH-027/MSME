@@ -1,10 +1,22 @@
 "use client";
 
-import { Bell, User, ChevronDown } from "lucide-react";
+import { Bell, User, ChevronDown, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Header() {
+  const router = useRouter();
   const [showNotif, setShowNotif] = useState(false);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      router.push("/login");
+      router.refresh();
+    }
+  };
 
   const notifications = [
     { id: 1, text: "⚠️ Black Dye stock critically low (80/200 litres)", time: "5m ago" },
@@ -59,6 +71,16 @@ export default function Header() {
             <p className="text-xs text-gray-400">Owner</p>
           </div>
           <ChevronDown className="h-3 w-3 text-gray-400 ml-1" />
+        </button>
+
+        {/* Sign Out */}
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+          aria-label="Sign out"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Sign Out</span>
         </button>
       </div>
     </header>
