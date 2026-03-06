@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { trends, inventory } from "@/lib/data";
+import { trends as mockTrends, inventory as mockInventory } from "@/lib/data";
+import type { Trend, InventoryItem } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 import {
   Lightbulb,
   TrendingUp,
@@ -71,7 +73,19 @@ const rdSuggestions = [
   },
 ];
 
-export default function InnovationPage() {
+export default async function InnovationPage() {
+  let trends: Trend[] = mockTrends;
+  let inventory: InventoryItem[] = mockInventory;
+
+  if (supabase) {
+    const [trendsRes, inventoryRes] = await Promise.all([
+      supabase.from("trends").select("*").order("search_spike_percent", { ascending: false }),
+      supabase.from("inventory").select("*").order("id", { ascending: true }),
+    ]);
+    if (trendsRes.data) trends = trendsRes.data as Trend[];
+    if (inventoryRes.data) inventory = inventoryRes.data as InventoryItem[];
+  }
+
   const maxSpike = Math.max(...trends.map((t) => t.search_spike_percent));
 
   return (
