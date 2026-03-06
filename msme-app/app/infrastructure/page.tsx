@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { machines as mockMachines } from "@/lib/data";
 import type { Machine } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
+import { MachineStatusSelect } from "@/components/MachineStatusSelect";
 import {
   Factory,
   AlertTriangle,
@@ -106,18 +106,10 @@ export default async function InfrastructurePage() {
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-sm font-semibold text-gray-800">{machine.name}</CardTitle>
-                    <Badge
-                      variant={
-                        machine.status === "Running"
-                          ? "success"
-                          : machine.status === "Under Maintenance"
-                          ? "destructive"
-                          : "warning"
-                      }
-                      className="text-xs"
-                    >
-                      {machine.status}
-                    </Badge>
+                    <MachineStatusSelect
+                      machineId={machine.id}
+                      currentStatus={machine.status}
+                    />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -194,7 +186,7 @@ export default async function InfrastructurePage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-medium ${statusColor(m.status).text}`}>{m.status}</span>
+                      <MachineStatusSelect machineId={m.id} currentStatus={m.status} />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className={`text-sm font-semibold ${m.efficiency_percent >= 85 ? "text-green-600" : m.efficiency_percent > 0 ? "text-yellow-600" : "text-gray-400"}`}>
