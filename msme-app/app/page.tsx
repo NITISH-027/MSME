@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
+import CreditCycleAlerts from "@/components/CreditCycleAlerts";
 
 function StatusBadge({ status }: { status: Order["status"] }) {
   const map: Record<string, { variant: "default" | "success" | "warning" | "secondary" | "destructive"; label: string }> = {
@@ -189,6 +190,8 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <CreditCycleAlerts />
 
       <Card>
         <CardHeader>
