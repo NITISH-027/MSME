@@ -9,6 +9,7 @@ import {
   Factory,
   Lightbulb,
   TrendingUp,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/analytics",      label: "Performance Analytics", icon: BarChart3 },
   { href: "/infrastructure", label: "Infrastructure",    icon: Factory },
   { href: "/innovation",     label: "Innovation Tracking", icon: Lightbulb },
+  { href: "/profile",        label: "My Profile",        icon: UserCircle },
 ];
 
 export default function Sidebar() {
