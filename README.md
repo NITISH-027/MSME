@@ -61,3 +61,77 @@ Core Logic
 Processing Layer
     ↓
 Output / Result
+Tech stack
+Layer	Technology
+Language	Python / [Your Language]
+Frontend	[HTML / CSS / JS / React / etc.]
+Backend	[FastAPI / Flask / Node / etc.]
+Database	[If any]
+Tools	Git, GitHub
+Project structure
+MSME/
+├── [folder-1]
+├── [folder-2]
+├── [folder-3]
+├── requirements.txt
+└── README.md
+Installation
+
+Clone the repository:
+
+git clone https://github.com/NITISH-027/MSME.git
+
+Move into the project:
+
+cd MSME
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+Run the project:
+
+python main.py
+Usage
+Open the application.
+Provide the required input.
+The system processes the request.
+View the generated output.
+Roadmap
+ Core project implementation
+ Basic workflow setup
+ UI refinement
+ Feature expansion
+ Better performance optimization
+ Deployment support
+Engineering notes
+
+This project is built with a focus on clarity, maintainability, and future growth.
+
+The architecture is intentionally kept simple enough to understand, while still being strong enough to support meaningful upgrades.
+
+Contributing
+
+Contributions, suggestions, and improvements are welcome.
+
+If you find a bug or have an idea to improve the project, feel free to open an issue or submit a pull request.
+
+<div align="center">
+
+Built with intent. Designed for impact.
+
+⭐ If you found this project useful, consider starring the repository.
+
+</div> ```
+What makes this premium
+
+For MSME, I would keep it more serious and technical than flashy.
+
+The premium feel comes from:
+
+strong headings
+short, confident copy
+clean badges
+architecture flow
+structured sections
+minimal decoration
